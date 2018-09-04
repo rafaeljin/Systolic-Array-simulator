@@ -28,6 +28,7 @@ def gen_sram_size(array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt_d, filt
 def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt_d, filt_n, stride, batch, filename, layer_id, next_filt_w, next_stride, macop_cost, isram_read_cost, fsram_read_cost, isram_write_cost, fsram_write_cost, dram_read_cost, dram_write_cost):
  
 
+    clock = 0
     f = open(filename,"a")
 
     layer_run_cycles = 0
@@ -69,6 +70,7 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
 
                 #print("hv",h_lanes,v_lanes)
 
+                clock = r_run_cycles + layer_run_cycles
                 run_cycles, macops, isram_read, fsram_read = gen_phase(h_lanes,filt_size,v_lanes)
                 r_run_cycles += run_cycles
                 if j != phases-1:
@@ -126,8 +128,10 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
                     r_isram_read += output_load 
                     dram_write += output_load
                     r_dram_write += output_load
+
+                energy = macops * macop_cost + isram_read * isram_read_cost + fsram_read * fsram_read_cost + isram_write * isram_write_cost + fsram_write * fsram_write_cost + dram_read * dram_read_cost + dram_write * dram_write_cost
                 #print (run_cycles,macops,isram_read,fsram_read,input_load,filt_load,output_load)
-                f.write(layer_id + "," + str(i) + "," + str(j) + "," + str(run_cycles) + "," + str(fstalls) + "," + str(istalls) + ","  + str(macops) + "," + str(isram_read) + "," + str(fsram_read) + "," + str(isram_write) + "," + str(fsram_write) + "," + str(dram_read) + "," + str(dram_write) + "," + str(h_lanes) + "," + str(v_lanes) + ",\n" )  
+                f.write(layer_id + "," + str(i) + "," + str(j) + "," + str(run_cycles) + "," + str(fstalls) + "," + str(istalls) + ","  + str(macops) + "," + str(isram_read) + "," + str(fsram_read) + "," + str(isram_write) + "," + str(fsram_write) + "," + str(dram_read) + "," + str(dram_write) + "," + str(h_lanes) + "," + str(v_lanes) + "," + str(energy) + "," + str(clock) + ",\n" )  
         f.write(",,,,,,,,,,,,,,,\n")
         '''
         print ('\tround:'+str(i+1))
@@ -250,8 +254,9 @@ if __name__ == "__main__":
         max_isram = max(max_isram,isram)
         f.write(layer_id+","+str(fsram)+","+str(isram)+",\n")
 
-    f.write("max"+","+str(max_fsram)+","+str(max_isram)+",\n\n\n")
-    f.write("layer,round,phase,run cycles,filter stalls,IF stalls,MACops,ISRAM read (bytes),FSRAM read (bytes),ISRAM write (bytes),FSRAM write (bytes),DRAM read (bytes), DRAM write (bytes),h lanes, v lanes, energy (pJ),\n" )
+    f.write("max"+","+str(max_fsram)+","+str(max_isram)+",\n")
+    f.write(",,,\n")
+    f.write("layer,round,phase,run cycles,filter stalls,IF stalls,MACops,ISRAM read (bytes),FSRAM read (bytes),ISRAM write (bytes),FSRAM write (bytes),DRAM read (bytes), DRAM write (bytes),h lanes, v lanes, energy (pJ), start cycle,\n" )
     f.close()
     
     macop_cost = 0.4
