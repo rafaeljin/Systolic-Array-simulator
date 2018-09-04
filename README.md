@@ -1,13 +1,15 @@
-# Systolic-Array-simulator
+# Energy numbers
+
 
 Energy numbers from cacti: https://github.com/HewlettPackard/cacti
 
 commands:
 
-make;
+  make;
 
-./cacti -infile filename
+  ./cacti -infile filename
 
+# Systolic-Array-simulator
 
 scale.cfg: Systolic Array conf file
 
@@ -15,4 +17,4 @@ test.csv: network file
 
 commands:
 
-python gen_results.py
+  python gen_results.py
