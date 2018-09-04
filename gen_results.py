@@ -33,6 +33,7 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
 
     layer_run_cycles = 0
     layer_energy = 0
+    layer_stalls = 0
 
     filt_size = filt_h * filt_w * filt_d
     of_h, of_w = (if_h - filt_h) / stride + 1, (if_w - filt_w) / stride + 1
@@ -70,16 +71,9 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
 
                 #print("hv",h_lanes,v_lanes)
 
-                clock = r_run_cycles + layer_run_cycles
-                run_cycles, macops, isram_read, fsram_read = gen_phase(h_lanes,filt_size,v_lanes)
-                r_run_cycles += run_cycles
-                if j != phases-1:
-                    r_run_cycles -= h_lanes + v_lanes
-
-                r_isram_read += isram_read 
-                r_fsram_read += fsram_read 
-                r_macops += macops
+                # stalls
                 # round == 0 read input feature
+
                 if i == 0:
                     if j == 0:
                         input_load = v_lanes * filt_size
@@ -97,12 +91,29 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
                 output_load = h_lanes * v_lanes
                 istalls = 0 
                 if input_load > 0 and layer_type == 0:
-                    istalls += int(math.ceil(input_load*1.0/bw)) - (v_lanes+filt_size-bw/2)
-                    r_istalls += int(math.ceil(input_load*1.0/bw)) - (v_lanes+filt_size-bw/2)
+                    istalls = int(math.ceil(input_load*1.0/bw)) - (v_lanes+filt_size-bw/2)
+                    istalls = max(istalls,0)
+                    r_istalls += istalls 
                 fstalls = 0 
                 if filt_load > 0:
-                    fstalls += int(math.ceil(filt_load*1.0/bw)) - (h_lanes+filt_size-bw/2)
-                    r_fstalls += int(math.ceil(filt_load*1.0/bw)) - (h_lanes+filt_size-bw/2)
+                    fstalls = int(math.ceil(filt_load*1.0/bw)) - (h_lanes+filt_size-bw/2)
+                    fstalls = max(fstalls,0)
+                    r_fstalls += fstalls 
+                layer_stalls += istalls + fstalls
+
+
+                clock = r_run_cycles + layer_run_cycles 
+                run_cycles, macops, isram_read, fsram_read = gen_phase(h_lanes,filt_size,v_lanes)
+                r_run_cycles += run_cycles
+                if j != phases-1:
+                    r_run_cycles -= h_lanes + v_lanes
+
+                r_isram_read += isram_read 
+                r_fsram_read += fsram_read 
+                r_macops += macops
+
+
+                # 
                 dram_read = filt_load
                 r_dram_read += filt_load
                 fsram_write = filt_load
@@ -115,23 +126,31 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
                     isram_write = input_load
                     r_isram_write += input_load
                     # write back result to isram
-                    isram_write += output_load 
+                    isram_write += int (output_load * (1.0 * next_filt_w / next_stride)) # consider reuse
                     r_isram_write += int (output_load * (1.0 * next_filt_w / next_stride)) # consider reuse
                 elif layer_type == 1:
                     # write back result to isram
-                    isram_write = output_load 
+                    isram_write = int (output_load * (1.0 * next_filt_w / next_stride)) # consider reuse
+                    r_isram_write += int (output_load * (1.0 * next_filt_w / next_stride)) # consider reuse
                 elif layer_type == 2:
                     # write back result to isram
-                    isram_write = output_load 
+                    isram_write = int (output_load * (1.0 * next_filt_w / next_stride)) # consider reuse
                     r_isram_write += int (output_load * (1.0 * next_filt_w / next_stride)) # consider reuse
                     # write back result to dram 
                     r_isram_read += output_load 
                     dram_write += output_load
                     r_dram_write += output_load
 
+                mac_energy = macops * macop_cost
+                isram_read_energy = isram_read * isram_read_cost  
+                fsram_read_energy = fsram_read * fsram_read_cost  
+                isram_write_energy =  isram_write * isram_write_cost  
+                fsram_write_energy = fsram_write * fsram_write_cost 
+                dram_read_energy = dram_read * dram_read_cost  
+                dram_write_energy = dram_write * dram_write_cost
                 energy = macops * macop_cost + isram_read * isram_read_cost + fsram_read * fsram_read_cost + isram_write * isram_write_cost + fsram_write * fsram_write_cost + dram_read * dram_read_cost + dram_write * dram_write_cost
                 #print (run_cycles,macops,isram_read,fsram_read,input_load,filt_load,output_load)
-                f.write(layer_id + "," + str(i) + "," + str(j) + "," + str(run_cycles) + "," + str(fstalls) + "," + str(istalls) + ","  + str(macops) + "," + str(isram_read) + "," + str(fsram_read) + "," + str(isram_write) + "," + str(fsram_write) + "," + str(dram_read) + "," + str(dram_write) + "," + str(h_lanes) + "," + str(v_lanes) + "," + str(energy) + "," + str(clock) + ",\n" )  
+                f.write(layer_id + "," + str(i) + "," + str(j) + "," + str(run_cycles) + "," + str(fstalls) + "," + str(istalls) + ","  + str(macops) + "," + str(isram_read) + "," + str(fsram_read) + "," + str(isram_write) + "," + str(fsram_write) + "," + str(dram_read) + "," + str(dram_write) + "," + str(h_lanes) + "," + str(v_lanes) + "," + str(isram_read_energy) + "," + str(fsram_read_energy) + "," + str(isram_write_energy) + "," + str(fsram_write_energy) + "," + str(dram_read_energy) + "," + str(dram_write_energy) + "," + str(mac_energy) + "," + str(energy) + "," + str(clock) + ",\n" )  
         f.write(",,,,,,,,,,,,,,,\n")
         '''
         print ('\tround:'+str(i+1))
@@ -150,11 +169,17 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
         print ("\t\t=====================")
         '''
 
+        r_mac_energy = r_macops * macop_cost
+        r_isram_read_energy = r_isram_read * isram_read_cost  
+        r_fsram_read_energy = r_fsram_read * fsram_read_cost  
+        r_isram_write_energy =  r_isram_write * isram_write_cost  
+        r_fsram_write_energy = r_fsram_write * fsram_write_cost 
+        r_dram_read_energy = r_dram_read * dram_read_cost  
+        r_dram_write_energy = r_dram_write * dram_write_cost
         r_energy = r_macops * macop_cost + r_isram_read * isram_read_cost + r_fsram_read * fsram_read_cost + r_isram_write * isram_write_cost + fsram_write * fsram_write_cost + r_dram_read * dram_read_cost + r_dram_write * dram_write_cost
-        layer_energy += r_macops * macop_cost + r_isram_read * isram_read_cost + r_fsram_read * fsram_read_cost + r_isram_write * isram_write_cost + fsram_write * fsram_write_cost + r_dram_read * dram_read_cost + r_dram_write * dram_write_cost
-        #energy += r_macops * macop_cost 
+        layer_energy += r_energy 
 
-        f.write(layer_id + "," + str(i) + "," + "total" + "," + str(r_run_cycles) + "," + str(r_fstalls) + "," + str(r_istalls) + ","  + str(r_macops) + "," + str(r_isram_read) + "," + str(r_fsram_read) + "," + str(r_isram_write) + "," + str(r_fsram_write) + "," + str(r_dram_read) + "," + str(r_dram_write) + ",,," + str(r_energy) + ",\n" )  
+        f.write(layer_id + "," + str(i) + "," + "total" + "," + str(r_run_cycles) + "," + str(r_fstalls) + "," + str(r_istalls) + ","  + str(r_macops) + "," + str(r_isram_read) + "," + str(r_fsram_read) + "," + str(r_isram_write) + "," + str(r_fsram_write) + "," + str(r_dram_read) + "," + str(r_dram_write) + ",,," +  str(r_isram_read_energy) + "," +  str(r_fsram_read_energy) + "," +  str(r_isram_write_energy) + "," +  str(r_fsram_write_energy) + "," +  str(r_dram_read_energy) + "," +  str(r_dram_write_energy) + "," +  str(r_mac_energy) + "," + str(r_energy) + "," +  str(r_fstalls+r_istalls) + ",\n" )  
         f.write(",,,,,,,,,,,,,,,\n")
 
 
@@ -256,7 +281,7 @@ if __name__ == "__main__":
 
     f.write("max"+","+str(max_fsram)+","+str(max_isram)+",\n")
     f.write(",,,\n")
-    f.write("layer,round,phase,run cycles,filter stalls,IF stalls,MACops,ISRAM read (bytes),FSRAM read (bytes),ISRAM write (bytes),FSRAM write (bytes),DRAM read (bytes), DRAM write (bytes),h lanes, v lanes, energy (pJ), start cycle,\n" )
+    f.write("layer,round,phase,run cycles,filter stalls,IF stalls,MACops,ISRAM read (bytes),FSRAM read (bytes),ISRAM write (bytes),FSRAM write (bytes),DRAM read (bytes), DRAM write (bytes),h lanes, v lanes, isram read energy(pJ), fsram read energy (pJ), isram write energy(pJ), fsram write energy (pJ), dram read energy (pJ), dram write energy (pJ), mac op energy (pJ), energy (pJ), start cycle offset,\n" )
     f.close()
     
     macop_cost = 0.4
