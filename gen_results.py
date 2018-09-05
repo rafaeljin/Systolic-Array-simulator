@@ -106,7 +106,7 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
                 run_cycles, macops, isram_read, fsram_read = gen_phase(h_lanes,filt_size,v_lanes)
                 r_run_cycles += run_cycles
                 if j != phases-1:
-                    r_run_cycles -= h_lanes + v_lanes
+                    r_run_cycles -= v_lanes
 
                 r_isram_read += isram_read 
                 r_fsram_read += fsram_read 
@@ -257,7 +257,7 @@ if __name__ == "__main__":
 
     max_fsram = max_isram = 0
     f = open(filename,"w")
-    f.write("layer, FSRAM required per lane (bytes), ISRAM required per lane (bytes),\n")
+    f.write("layer, FSRAM required per lane (bytes), ISRAM required per lane (bytes),,,,,,,,,,,,,,,\n")
 
     for i in range(len(networks)):
         if_h = networks[i]["ifmap_h"]
@@ -277,7 +277,7 @@ if __name__ == "__main__":
         fsram, isram = gen_sram_size(array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt_d, filt_n, stride, batch)
         max_fsram = max(max_fsram,fsram)
         max_isram = max(max_isram,isram)
-        f.write(layer_id+","+str(fsram)+","+str(isram)+",\n")
+        f.write(layer_id+","+str(fsram)+","+str(isram)+",,,,,,,,,,,,,,,\n")
 
     f.write("max"+","+str(max_fsram)+","+str(max_isram)+",\n")
     f.write(",,,\n")
