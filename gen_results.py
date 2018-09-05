@@ -279,8 +279,8 @@ if __name__ == "__main__":
         max_isram = max(max_isram,isram)
         f.write(layer_id+","+str(fsram)+","+str(isram)+",,,,,,,,,,,,,,,\n")
 
-    f.write("max"+","+str(max_fsram)+","+str(max_isram)+",\n")
-    f.write(",,,\n")
+    f.write("max"+","+str(max_fsram)+","+str(max_isram)+",,,,,,,,,,,,,,,\n")
+    f.write(",,,,,,,,,,,,,,,,,\n")
     f.write("layer,round,phase,run cycles,filter stalls,IF stalls,MACops,ISRAM read (bytes),FSRAM read (bytes),ISRAM write (bytes),FSRAM write (bytes),DRAM read (bytes), DRAM write (bytes),h lanes, v lanes, isram read energy(pJ), fsram read energy (pJ), isram write energy(pJ), fsram write energy (pJ), dram read energy (pJ), dram write energy (pJ), mac op energy (pJ), energy (pJ), start cycle offset,\n" )
     f.close()
     
