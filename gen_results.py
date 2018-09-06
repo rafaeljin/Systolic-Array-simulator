@@ -257,7 +257,7 @@ if __name__ == "__main__":
 
     max_fsram = max_isram = 0
     f = open(filename,"w")
-    f.write("layer, FSRAM required per lane (bytes), ISRAM required per lane (bytes),,,,,,,,,,,,,,,\n")
+    f.write("layer, FSRAM required per lane (bytes), ISRAM required per lane (bytes),,,,,,,,,,,,,,,,,,,,,,\n")
 
     for i in range(len(networks)):
         if_h = networks[i]["ifmap_h"]
@@ -277,10 +277,10 @@ if __name__ == "__main__":
         fsram, isram = gen_sram_size(array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt_d, filt_n, stride, batch)
         max_fsram = max(max_fsram,fsram)
         max_isram = max(max_isram,isram)
-        f.write(layer_id+","+str(fsram)+","+str(isram)+",,,,,,,,,,,,,,,\n")
+        f.write(layer_id+","+str(fsram)+","+str(isram)+",,,,,,,,,,,,,,,,,,,,,,\n")
 
-    f.write("max"+","+str(max_fsram)+","+str(max_isram)+",,,,,,,,,,,,,,,\n")
-    f.write(",,,,,,,,,,,,,,,,,\n")
+    f.write("max"+","+str(max_fsram)+","+str(max_isram)+",,,,,,,,,,,,,,,,,,,,,,\n")
+    f.write(",,,,,,,,,,,,,,,,,,,,,,,,\n")
     f.write("layer,round,phase,run cycles,filter stalls,IF stalls,MACops,ISRAM read (bytes),FSRAM read (bytes),ISRAM write (bytes),FSRAM write (bytes),DRAM read (bytes), DRAM write (bytes),h lanes, v lanes, isram read energy(pJ), fsram read energy (pJ), isram write energy(pJ), fsram write energy (pJ), dram read energy (pJ), dram write energy (pJ), mac op energy (pJ), energy (pJ), start cycle offset,\n" )
     f.close()
     
