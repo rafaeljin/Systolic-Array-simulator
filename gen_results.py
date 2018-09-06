@@ -151,7 +151,7 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
                 energy = macops * macop_cost + isram_read * isram_read_cost + fsram_read * fsram_read_cost + isram_write * isram_write_cost + fsram_write * fsram_write_cost + dram_read * dram_read_cost + dram_write * dram_write_cost
                 #print (run_cycles,macops,isram_read,fsram_read,input_load,filt_load,output_load)
                 f.write(layer_id + "," + str(i) + "," + str(j) + "," + str(run_cycles) + "," + str(fstalls) + "," + str(istalls) + ","  + str(macops) + "," + str(isram_read) + "," + str(fsram_read) + "," + str(isram_write) + "," + str(fsram_write) + "," + str(dram_read) + "," + str(dram_write) + "," + str(h_lanes) + "," + str(v_lanes) + "," + str(isram_read_energy) + "," + str(fsram_read_energy) + "," + str(isram_write_energy) + "," + str(fsram_write_energy) + "," + str(dram_read_energy) + "," + str(dram_write_energy) + "," + str(mac_energy) + "," + str(energy) + "," + str(clock) + ",\n" )  
-        f.write(",,,,,,,,,,,,,,,,,,,,,,\n")
+        f.write(",,,,,,,,,,,,,,,,,,,,,,,,\n")
         '''
         print ('\tround:'+str(i+1))
         print ('\t\trun_cycles:'+str(r_run_cycles))
@@ -180,7 +180,7 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
         layer_energy += r_energy 
 
         f.write(layer_id + "," + str(i) + "," + "total" + "," + str(r_run_cycles) + "," + str(r_fstalls) + "," + str(r_istalls) + ","  + str(r_macops) + "," + str(r_isram_read) + "," + str(r_fsram_read) + "," + str(r_isram_write) + "," + str(r_fsram_write) + "," + str(r_dram_read) + "," + str(r_dram_write) + ",,," +  str(r_isram_read_energy) + "," +  str(r_fsram_read_energy) + "," +  str(r_isram_write_energy) + "," +  str(r_fsram_write_energy) + "," +  str(r_dram_read_energy) + "," +  str(r_dram_write_energy) + "," +  str(r_mac_energy) + "," + str(r_energy) + "," +  str(r_fstalls+r_istalls) + ",\n" )  
-        f.write(",,,,,,,,,,,,,,,,,,,,,,\n")
+        f.write(",,,,,,,,,,,,,,,,,,,,,,,,\n")
 
 
         layer_run_cycles += r_run_cycles
