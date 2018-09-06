@@ -106,7 +106,7 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
                 run_cycles, macops, isram_read, fsram_read = gen_phase(h_lanes,filt_size,v_lanes)
                 r_run_cycles += run_cycles
                 if j != phases-1:
-                    r_run_cycles -= v_lanes
+                    r_run_cycles -= v_lanes + h_lanes
 
                 r_isram_read += isram_read 
                 r_fsram_read += fsram_read 
