@@ -3,6 +3,7 @@ import time
 import configparser as cp
 import sys
 
+additional_fields = ",,,,,,,,,,,,,,,,,,,,,,,,"
 
 # return running cycles, mac operations, used lanes
 def gen_phase (h_lanes, single_len, v_lanes):
@@ -149,7 +150,7 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
                 energy = macops * macop_cost + isram_read * isram_read_cost + fsram_read * fsram_read_cost + isram_write * isram_write_cost + fsram_write * fsram_write_cost + dram_read * dram_read_cost + dram_write * dram_write_cost
                 #print (run_cycles,macops,isram_read,fsram_read,input_load,filt_load,output_load)
                 f.write(layer_id + "," + str(i) + "," + str(j) + "," + str(run_cycles) + "," + str(fstalls) + "," + str(istalls) + ","  + str(macops) + "," + str(isram_read) + "," + str(fsram_read) + "," + str(isram_write) + "," + str(fsram_write) + "," + str(dram_read) + "," + str(dram_write) + "," + str(h_lanes) + "," + str(v_lanes) + "," + str(isram_read_energy) + "," + str(fsram_read_energy) + "," + str(isram_write_energy) + "," + str(fsram_write_energy) + "," + str(dram_read_energy) + "," + str(dram_write_energy) + "," + str(mac_energy) + "," + str(energy) + "," + str(clock) + "," + str(isram_write_preload) + "," + str(isram_write_preload_energy) + ",\n" )  
-        f.write(",,,,,,,,,,,,,,,,,,,,,,,,,,\n")
+        f.write( additional_fields + ",,\n")
         '''
         print ('\tround:'+str(i+1))
         print ('\t\trun_cycles:'+str(r_run_cycles))
@@ -179,7 +180,7 @@ def gen_layer (layer_type,array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt
         layer_energy += r_energy 
 
         f.write(layer_id + "," + str(i) + "," + "total" + "," + str(r_run_cycles) + "," + str(r_fstalls) + "," + str(r_istalls) + ","  + str(r_macops) + "," + str(r_isram_read) + "," + str(r_fsram_read) + "," + str(r_isram_write) + "," + str(r_fsram_write) + "," + str(r_dram_read) + "," + str(r_dram_write) + ",,," +  str(r_isram_read_energy) + "," +  str(r_fsram_read_energy) + "," +  str(r_isram_write_energy) + "," +  str(r_fsram_write_energy) + "," +  str(r_dram_read_energy) + "," +  str(r_dram_write_energy) + "," +  str(r_mac_energy) + "," + str(r_energy) + "," +  str(r_fstalls+r_istalls) + "," + str(r_isram_write_preload) + "," + str(r_isram_write_preload_energy) + ",\n" )  
-        f.write(",,,,,,,,,,,,,,,,,,,,,,,,,,\n")
+        f.write(additional_fields + ",,\n")
 
 
         layer_run_cycles += r_run_cycles
@@ -256,7 +257,7 @@ if __name__ == "__main__":
 
     max_fsram = max_isram = 0
     f = open(filename,"w")
-    f.write("layer, FSRAM required per lane (bytes), ISRAM required per lane (bytes),,,,,,,,,,,,,,,,,,,,,,,,\n")
+    f.write("layer, FSRAM required per lane (bytes), ISRAM required per lane (bytes)" + additional_fields + "\n")
 
     for i in range(len(networks)):
         if_h = networks[i]["ifmap_h"]
@@ -276,10 +277,10 @@ if __name__ == "__main__":
         fsram, isram = gen_sram_size(array_h, array_w, bw, if_h, if_w, filt_h, filt_w, filt_d, filt_n, stride, batch)
         max_fsram = max(max_fsram,fsram)
         max_isram = max(max_isram,isram)
-        f.write(layer_id+","+str(fsram)+","+str(isram)+",,,,,,,,,,,,,,,,,,,,,,,,\n")
+        f.write(layer_id+","+str(fsram)+","+str(isram)+ additional_fields  +"\n")
 
-    f.write("max"+","+str(max_fsram)+","+str(max_isram)+",,,,,,,,,,,,,,,,,,,,,,,,\n")
-    f.write(",,,,,,,,,,,,,,,,,,,,,,,,,,\n")
+    f.write("max"+","+str(max_fsram)+","+str(max_isram)+ additional_fields +"\n")
+    f.write(additional_fields + ",,\n")
     f.write("layer,round,phase,run cycles,filter stalls,IF stalls,MACops,ISRAM read (bytes),FSRAM read (bytes),ISRAM write (bytes),FSRAM write (bytes),DRAM read (bytes), DRAM write (bytes),h lanes, v lanes, isram read energy(pJ), fsram read energy (pJ), isram write energy(pJ), fsram write energy (pJ), dram read energy (pJ), dram write energy (pJ), mac op energy (pJ), energy (pJ), start cycle offset,ISRAM write preload (bytes), ISRAM write preload energy (pJ),\n" )
     f.close()
     
